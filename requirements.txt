@@ -1,4 +1,7 @@
 absl-py
 google.cloud
 fastavro
-kafka-python
+kafka-pythongoogle-cloud-storage
+google-api-python-client
+google
+wheel python-language-server
