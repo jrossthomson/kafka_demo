@@ -6,6 +6,7 @@
 from absl import app
 from absl import flags
 from google.cloud import storage
+from kafka import KafkaProducer
 
 import fastavro
 import json
@@ -23,13 +24,21 @@ flags.DEFINE_string('source_blob_name',
 flags.DEFINE_string('destination_file_name',
                     '1033112310015010003.avro', 'Destination File Name.')
 flags.DEFINE_string('source_folder', 'data', 'Source Folder Name.')
+flags.DEFINE_string('topic', 'test', 'Kafka Topic')
+flags.DEFINE_list('host', 'localhost:9092', 'Kafka Broker Hosts')
 
-alert_fields = 'objectId,jd,fid,pid,diffmaglim,pdiffimfilename,programpi,programid,candid,isdiffpos,tblid,nid,rcid,field,xpos,ypos,\
-ra,dec,magpsf,sigmapsf,chipsf,magap,sigmagap,distnr,magnr,sigmagnr,chinr,sharpnr,sky,magdiff,\
-fwhm,classtar,mindtoedge,magfromlim,seeratio,aimage,bimage,aimagerat,bimagerat,elong,nneg,nbad,rb,ssdistnr,\
-ssmagnr,ssnamenr,sumrat,magapbig,sigmagapbig,ranr,decnr,sgmag1,srmag1,simag1,szmag1,sgscore1,distpsnr1,ndethist,ncovhist,\
-jdstarthist,jdendhist,scorr,tooflag,objectidps1,objectidps2,sgmag2,srmag2,simag2,szmag2,sgscore2,distpsnr2,objectidps3,sgmag3,\
-srmag3,simag3,szmag3,sgscore3,distpsnr3,nmtchps,rfid,jdstartref,jdendref,nframesref'
+# alert_fields = 'objectId,jd,fid,pid,diffmaglim,pdiffimfilename,programpi,programid,candid,isdiffpos,tblid,nid,rcid,field,xpos,ypos,\
+# ra,dec,magpsf,sigmapsf,chipsf,magap,sigmagap,distnr,magnr,sigmagnr,chinr,sharpnr,sky,magdiff,\
+# fwhm,classtar,mindtoedge,magfromlim,seeratio,aimage,bimage,aimagerat,bimagerat,elong,nneg,nbad,rb,ssdistnr,\
+# ssmagnr,ssnamenr,sumrat,magapbig,sigmagapbig,ranr,decnr,sgmag1,srmag1,simag1,szmag1,sgscore1,distpsnr1,ndethist,ncovhist,\
+# jdstarthist,jdendhist,scorr,tooflag,objectidps1,objectidps2,sgmag2,srmag2,simag2,szmag2,sgscore2,distpsnr2,objectidps3,sgmag3,\
+# srmag3,simag3,szmag3,sgscore3,distpsnr3,nmtchps,rfid,jdstartref,jdendref,nframesref'
+
+
+def produce_message(topic, key, message):
+    producer = KafkaProducer(bootstrap_servers=FLAGS.host)
+    producer.send(topic, key=key, value=message)
+    producer.close()
 
 
 def get_blob_list(bucket_name, project):
@@ -87,6 +96,7 @@ def main(_):
         blob_string = get_blob_as_string(
             FLAGS.bucket, head_tail[0], head_tail[1], head_tail[1], FLAGS.project)
         read_avro(blob_string)
+        produce_message(FLAGS.topic, b.name.encode(),  blob_string)
 
 
 if __name__ == '__main__':

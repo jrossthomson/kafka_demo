@@ -2,8 +2,8 @@ from kafka import KafkaProducer
 from kafka.errors import KafkaError
 
 producer = KafkaProducer(
-    bootstrap_servers=['104.198.129.242:9092'],
-    api_version=(0, 10, 1)
+    bootstrap_servers=['localhost:9092']
+    # , api_version=(0, 10, 1)
 )
 
 # Asynchronous by default
