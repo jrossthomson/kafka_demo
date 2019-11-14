@@ -5,3 +5,5 @@ google.cloud
 google-cloud-storage
 fastavro
 kafka-python
+pyfits
+pillow
